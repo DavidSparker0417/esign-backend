@@ -1,15 +1,3 @@
-/**
- **************************************************************
- * The Fans Together Website Backend - v1.0.0
- **************************************************************
- *
- * Product Page:
- * Copyright 2022 @TFTTeam (https://www.tft-dev-team.com)
- *
- * Coded by Telecrypto@OKI
- *
- **************************************************************
- */
 
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -43,7 +31,7 @@ db.sequelize
     console.error(err);
   });
 
-db.sequelize.sync({ force: true }).then(() => {
+db.sequelize.sync({ force: false }).then(() => {
   console.log("Drop and Resync Database with { force: false }");
   initial();
 });
@@ -56,6 +44,7 @@ app.get("/", (req, res) => {
 require("./src/routes/auth.routes")(app);
 require("./src/routes/user.routes")(app);
 require("./src/routes/profile.routes")(app);
+require("./src/routes/docsign.routes")(app);
 
 function initial() {
   Role.create({
@@ -80,16 +69,16 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
 });
 
-const httpsPort = HTTPS_PORT;
-const privateKey = fs.readFileSync("config/cert/private.key");
-const certificate = fs.readFileSync("config/cert/certificate.crt");
-const ca = fs.readFileSync("config/cert/ca_bundle.crt");
-const credentials = {
-  key: privateKey,
-  cert: certificate,
-  ca: ca
-}
-https.createServer(credentials, app)
-  .listen(httpsPort, () => {
-    console.log(`[TFTB] servier is running at port ${httpsPort} as https.`);
-  });
+// const httpsPort = HTTPS_PORT;
+// const privateKey = fs.readFileSync("config/cert/private.key");
+// const certificate = fs.readFileSync("config/cert/certificate.crt");
+// const ca = fs.readFileSync("config/cert/ca_bundle.crt");
+// const credentials = {
+//   key: privateKey,
+//   cert: certificate,
+//   ca: ca
+// }
+// https.createServer(credentials, app)
+//   .listen(httpsPort, () => {
+//     console.log(`[TFTB] servier is running at port ${httpsPort} as https.`);
+//   });

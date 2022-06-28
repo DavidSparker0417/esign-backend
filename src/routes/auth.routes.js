@@ -1,21 +1,8 @@
-/**
- **************************************************************
- * The Fans Together Website Backend - v1.0.0
- **************************************************************
- *
- * Product Page:
- * Copyright 2022 @TFTTeam (https://www.tft-dev-team.com)
- *
- * Coded by Telecrypto@OKI
- *
- **************************************************************
- */
 const { verifyUser, authJwt } = require("../middleware");
 const controller = require("../controllers/auth.controller");
 const { pwdResetEmailTemplate } = require("../utils/email");
 
 module.exports = function (app) {
-  var cors = require("cors");
   app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header(
