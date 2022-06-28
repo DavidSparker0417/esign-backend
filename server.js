@@ -46,22 +46,22 @@ require("./src/routes/user.routes")(app);
 require("./src/routes/profile.routes")(app);
 require("./src/routes/docsign.routes")(app);
 
-function initial() {
-  Role.create({
-    id: 1,
-    name: "user",
-  });
+// function initial() {
+//   Role.create({
+//     id: 1,
+//     name: "user",
+//   });
 
-  Role.create({
-    id: 2,
-    name: "moderator",
-  });
+//   Role.create({
+//     id: 2,
+//     name: "moderator",
+//   });
 
-  Role.create({
-    id: 3,
-    name: "admin",
-  });
-}
+//   Role.create({
+//     id: 3,
+//     name: "admin",
+//   });
+// }
 
 // start HTTP/HTTPS service
 const PORT = process.env.PORT || HTTP_PORT;
