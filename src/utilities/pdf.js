@@ -2,7 +2,7 @@ const fs = require("fs");
 const { sign } = require("pdf-signer");
 const signer = require("node-signpdf").default;
 const { plainAddPlaceholder } = require("node-signpdf/dist/helpers");
-const { PDFDocument } = require("pdf-lib");
+const { PDFDocument, StandardFonts } = require("pdf-lib");
 const PDFKitDoc = require("pdfkit");
 const keyPath = "cert/pdf-signer.p12";
 const password = "";
@@ -62,6 +62,16 @@ async function signPdfByPdfSigner(pdfB64, signData) {
       width: pngDims.width,
       height: pngDims.height,
     });
+  } else {
+    const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    curPage.drawText(signData.data, {
+      x: signData.x,
+      y: signData.y,
+      size: 50,
+      font: helveticaFont,
+      color: rgb(0.95, 0.1, 0.1),
+      rotate: degrees(-45),
+    })
   }
 
   const resultPdf = await pdfDoc.save();
