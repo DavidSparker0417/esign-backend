@@ -33,7 +33,7 @@ db.sequelize
 
 db.sequelize.sync({ force: false }).then(() => {
   console.log("Drop and Resync Database with { force: false }");
-  initial();
+  // initial();
 });
 
 app.get("/", (req, res) => {
