@@ -55,7 +55,7 @@ async function signPdfByPdfSigner(pdfB64, signData) {
   if (signData.type == "draw") {
     const drawData = Buffer.from(signData.data, "base64");
     const pngImage = await pdfDoc.embedPng(drawData);
-    const pngDims = pngImage.scale(1.0);
+    const pngDims = pngImage.scale(0.2);
     curPage.drawImage(pngImage, {
       x: drawData.x,
       y: drawData.y,
@@ -67,10 +67,9 @@ async function signPdfByPdfSigner(pdfB64, signData) {
     curPage.drawText(signData.data, {
       x: signData.x,
       y: signData.y,
-      size: 50,
+      size: 10,
       font: helveticaFont,
       color: rgb(0.95, 0.1, 0.1),
-      rotate: degrees(-45),
     })
   }
 
