@@ -7,58 +7,65 @@ const PDFKitDoc = require("pdfkit");
 const keyPath = "cert/pdf-signer.p12";
 const password = "";
 
-async function signPdfByPdfSigner(pdfB64, signData) {
+async function signPdfByPdfSigner(pdfB64, signData, user, email) {
   const p12Buffer = fs.readFileSync("cert/pdf-signer.p12");
   const pdfBuffer = Buffer.from(pdfB64, "base64");
-  // const pdfBuffer = fs.readFileSync("pdfs/test.pdf");
-
+  const drawData = Buffer.from(signData.data, "base64");
+  let pdfDoc = await PDFDocument.load(pdfBuffer);
+  let curPage = pdfDoc.getPage(1);
   console.log("[SIGN PDF] pdfBuffer = ", pdfBuffer);
   console.log("[SIGN PDF] certBuffer = ", p12Buffer);
+  console.log("[SIGN PDF] drawInfo : (x, y) = ", signData.x, signData.y);
 
+  const date = new Date();
   const signedPdf = await sign(pdfBuffer, p12Buffer, "", {
     reason: "2",
-    email: "esign@email.com",
+    email: email,
     location: "Location, LO",
     signerName: "ESIGN Team",
     annotationAppearanceOptions: {
-      signatureCoordinates: { left: 0, bottom: 700, right: 600, top: 860 },
+      signatureCoordinates: { 
+        left: 0, 
+        bottom: 10, 
+        right: 100, 
+        top: 60 
+      },
       signatureDetails: [
         {
-          value: "Signed by: Anxhelo",
+          value: `Signed by: ${user}`,
           fontSize: 7,
           transformOptions: {
             rotate: 0,
             space: 1,
             tilt: 0,
-            xPos: 20,
+            xPos: 0,
             yPos: 20,
           },
         },
         {
-          value: "Date: 2019-10-11",
+          value: date.toISOString().split('T')[0],
           fontSize: 7,
           transformOptions: {
             rotate: 0,
             space: 1,
             tilt: 0,
-            xPos: 20,
-            yPos: 30,
+            xPos: 0,
+            yPos: 10,
           },
         },
       ],
     },
   });
 
-  const pdfDoc = await PDFDocument.load(signedPdf);
+  pdfDoc = await PDFDocument.load(signedPdf);
   const pages = pdfDoc.getPages();
-  const curPage = pages[signData.page];
+  curPage = pages[signData.page];
   if (signData.type == "draw") {
-    const drawData = Buffer.from(signData.data, "base64");
     const pngImage = await pdfDoc.embedPng(drawData);
     const pngDims = pngImage.scale(0.2);
     curPage.drawImage(pngImage, {
-      x: drawData.x,
-      y: drawData.y,
+      x: signData.x,
+      y: signData.y,
       width: pngDims.width,
       height: pngDims.height,
     });
