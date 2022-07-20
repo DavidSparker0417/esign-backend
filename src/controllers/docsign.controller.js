@@ -36,13 +36,12 @@ exports.deliver = async (req, res) => {
   payload = JSON.parse(req.body.payload);
   coordinates = JSON.parse(req.body.coordinates);
   const signers = payload.recipients.signers;
-  signers.map((s, i) => {
+  signers.map(async (s, i) => {
     console.log(`[${s.recipientId}] : ${s.email}`);
+    const link = `http://192.168.103.18:3000/app/doc-sign/?id=${s.recipientId}`;
+    console.log(s.email, link);
+    await sendEmail(s.email, "Esign Document", link);
   });
-  const email = signers[2].email;
-  const link = `http://localhost:3000/app/doc-sign/?id=${signers[2].recipientId}`;
-  console.log(email, link);
-  await sendEmail(email, "Esign Document", link);
   res.send({message: "OK"});
 }
 
