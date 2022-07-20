@@ -38,7 +38,7 @@ exports.deliver = async (req, res) => {
   signers.map((s, i) => {
     console.log(`[${s.recipientId}] : ${s.email}`);
   });
-  const email = "MaimGoriki88@gmail.com";
+  const email = "MaximGoriki88@gmail.com";
   const link = "http://localhost:3000/api/doc-sign/?id=4";
   await sendEmail(email, "Esign Document", link);
   res.send({message: "OK"});
