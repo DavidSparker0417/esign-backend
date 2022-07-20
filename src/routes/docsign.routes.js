@@ -13,4 +13,5 @@ module.exports = function(app) {
 
   app.post("/api/doc-sign/create", [authJwt.verifyToken], controller.create);
   app.post("/api/doc-sign/deliver", controller.deliver);
+  app.post("/api/doc-sign/payloads", controller.resp_payloads);
 }

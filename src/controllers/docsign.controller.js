@@ -30,16 +30,22 @@ exports.create = async (req, res) => {
   }
 };
 
+let payload;
+let coordinates;
 exports.deliver = async (req, res) => {
-  const payload = JSON.parse(req.body.payload);
-  const coordinates = JSON.parse(req.body.coordinates);
-  console.log(payload.recipients);
+  payload = JSON.parse(req.body.payload);
+  coordinates = JSON.parse(req.body.coordinates);
   const signers = payload.recipients.signers;
   signers.map((s, i) => {
     console.log(`[${s.recipientId}] : ${s.email}`);
   });
-  const email = "MaximGoriki88@gmail.com";
-  const link = "http://localhost:3000/app/doc-sign/?id=4";
+  const email = signers[2].email;
+  const link = `http://localhost:3000/app/doc-sign/?id=${signers[2].recipientId}`;
+  console.log(email, link);
   await sendEmail(email, "Esign Document", link);
   res.send({message: "OK"});
+}
+
+exports.resp_payloads = async (req, res) => {
+  res.send({payload, coordinates});
 }
