@@ -32,9 +32,9 @@ const sendEmail = async (email, subject, link) => {
       },
     });
     await emailTmp.send({
-      template: "password-reset",
+      template: "esign-doc",
       message: {
-        from: "TFT Team <no-reply@thefanstogether.com>",
+        from: "ESIGN Team <no-reply@esign.com>",
         to: email
       },
       locals: {
