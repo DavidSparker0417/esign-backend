@@ -1,5 +1,6 @@
 const db = require("../models");
 const {signPdfByPdfSigner, signPdfByTron} = require("../utilities/pdf");
+const { sendEmail } = require("../utils/email");
 const User = db.user;
 
 exports.create = async (req, res) => {
@@ -28,3 +29,17 @@ exports.create = async (req, res) => {
     res.status(403).send({ message: e.message });
   }
 };
+
+exports.deliver = async (req, res) => {
+  const payload = JSON.parse(req.body.payload);
+  const coordinates = JSON.parse(req.body.coordinates);
+  console.log(payload.recipients);
+  const signers = payload.recipients.signers;
+  signers.map((s, i) => {
+    console.log(`[${s.recipientId}] : ${s.email}`);
+  });
+  const email = "MaimGoriki88@gmail.com";
+  const link = "http://localhost:3000/api/doc-sign/?id=4";
+  await sendEmail(email, "Esign Document", link);
+  res.send({message: "OK"});
+}
