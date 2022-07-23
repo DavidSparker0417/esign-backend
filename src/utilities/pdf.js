@@ -7,16 +7,11 @@ const PDFKitDoc = require("pdfkit");
 const keyPath = "cert/pdf-signer.p12";
 const password = "";
 
-async function signPdfByPdfSigner(pdfB64, signData, user, email) {
+async function signPdfByPdfSigner(pdfBuffer, email, drawData) {
   const p12Buffer = fs.readFileSync("cert/pdf-signer.p12");
-  const pdfBuffer = Buffer.from(pdfB64, "base64");
-  const drawData = Buffer.from(signData.data, "base64");
   let pdfDoc = await PDFDocument.load(pdfBuffer);
-  let curPage = pdfDoc.getPage(1);
-  console.log("[SIGN PDF] pdfBuffer = ", pdfBuffer);
-  console.log("[SIGN PDF] certBuffer = ", p12Buffer);
-  console.log("[SIGN PDF] drawInfo : (x, y) = ", signData.x, signData.y);
-
+  let curPage;
+  
   const date = new Date();
   const signedPdf = await sign(pdfBuffer, p12Buffer, "", {
     reason: "2",
@@ -32,7 +27,7 @@ async function signPdfByPdfSigner(pdfB64, signData, user, email) {
       },
       signatureDetails: [
         {
-          value: `Signed by: ${user}`,
+          value: `Signed by: ${email}`,
           fontSize: 7,
           transformOptions: {
             rotate: 0,
@@ -59,31 +54,44 @@ async function signPdfByPdfSigner(pdfB64, signData, user, email) {
 
   pdfDoc = await PDFDocument.load(signedPdf);
   const pages = pdfDoc.getPages();
-  curPage = pages[signData.page];
-  if (signData.type == "draw") {
-    const pngImage = await pdfDoc.embedPng(drawData);
-    const pngDims = pngImage.scale(0.2);
-    curPage.drawImage(pngImage, {
-      x: signData.x,
-      y: signData.y,
-      width: pngDims.width,
-      height: pngDims.height,
-    });
-  } else {
-    const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    curPage.drawText(signData.data, {
-      x: signData.x,
-      y: signData.y,
-      size: 10,
-      font: helveticaFont,
-      color: rgb(0.95, 0.1, 0.1),
-    })
+  for (i in pages) {
+    curPage = pages[i];
+    let png;
+    if (drawData.initial.coords[i])
+    {
+      png = await pdfDoc.embedPng(drawData.initial.mark);
+      curPage.drawImage(png, {
+        x: drawData.initial.coords[i].x,
+        y: drawData.initial.coords[i].y,
+        width: drawData.initial.coords[i].width,
+        height: drawData.initial.coords[i].height,
+      });
+    }
+    if (drawData.sig.coords[i])
+    {
+      png = await pdfDoc.embedPng(drawData.sig.mark);
+      curPage.drawImage(png, {
+        x: drawData.sig.coords[i].x,
+        y: drawData.sig.coords[i].y,
+        width: drawData.sig.coords[i].width,
+        height: drawData.sig.coords[i].height,
+      });
+    }
+    if (drawData.date.coords[i])
+    {
+      curPage.drawText(drawData.date.mark, {
+        size: 16,
+        x: drawData.date.coords[i].x,
+        y: drawData.date.coords[i].y,
+        width: drawData.date.coords[i].width,
+        height: drawData.date.coords[i].height,
+      });
+    }
   }
 
   const resultPdf = await pdfDoc.save();
   const resB64Buffer = Buffer.from(resultPdf).toString("base64");
   console.log("[DOC-SIGN] SIGNED B64 BUFFER = ", resB64Buffer.slice(0, 20));
-  // fs.writeFileSync("pdfs/test-signed.pdf", resultPdf);
   return resB64Buffer;
 }
 
