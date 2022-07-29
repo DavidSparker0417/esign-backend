@@ -1,6 +1,7 @@
 const db = require("../models");
 const {signPdfByPdfSigner, signPdfByTron} = require("../utilities/pdf");
-const { sendEmail } = require("../utils/email");
+const { sendEmail, Email } = require("../utils/email");
+const { jwtGenerateToken, jwtDecodeToken } = require("../utils/jwt");
 const User = db.user;
 let payload;
 let coordinates;
@@ -8,6 +9,7 @@ let auditTrail = {};
 let pdfBuffer;
 // const dapp_url = "http://192.168.103.18:3000";
 const dapp_url = "https://esign-dapp.netlify.app";
+let signers = [];
 
 exports.create = async (req, res) => {
   const { pdfBuffer, signData } = req.body;
@@ -39,12 +41,18 @@ exports.create = async (req, res) => {
 exports.deliver = async (req, res) => {
   payload = JSON.parse(req.body.payload);
   coordinates = JSON.parse(req.body.coordinates);
-  const signers = payload.recipients.signers;
-  signers.map(async (s, i) => {
+  const _signers = payload.recipients.signers;
+  _signers.map(async (s, i) => {
     console.log(`[${s.recipientId}] : ${s.email}`);
-    const link = `${dapp_url}/app/doc-sign/?id=${s.recipientId}`;
+    const token = jwtGenerateToken(s.recipientId);
+    const link = `${dapp_url}/app/doc-sign/?token=${token}`;
     console.log(s.email, link);
     await sendEmail(s.email, "Esign Document", link);
+    signers.push({
+      email: s.email,
+      id: s.recipientId,
+      verified: false,
+    });
   });
   auditTrail.name = payload.documents[0].name;
   auditTrail.auditLog = [];
@@ -52,8 +60,68 @@ exports.deliver = async (req, res) => {
   res.send({message: "OK"});
 }
 
+const getSigner = async(id, req, res) => {
+  if (signers?.length <= 0) {
+    res.status(403).send({message: "No signer db in the server!"});
+    return -1;
+  }
+  if (!id) {
+    res.status(403).send({message: "Wrong id!"});
+    return -1;
+  }
+
+  const i = signers.findIndex(s => s.id === id);
+  if (i === -1) {
+    res.status(403).send({message: "No data for corresponding id!"});
+    return -1;
+  }
+  return i;
+}
+
 exports.resp_payloads = async (req, res) => {
-  res.send({payload, coordinates});
+  const {token} = req.body;
+  const id = jwtDecodeToken(token);
+  const i = await getSigner(id, req, res);
+  if (i === -1)
+    return;
+  const signer = signers[i];
+  console.log(signer);
+  if (signer.verified === true)
+    return res.send({payload, coordinates, id: signer.id});
+  
+  return res.status(401).send({message: "Unauthorized"});
+}
+
+exports.auth = async(req, res) => {
+  const {token, contact} = req.body;
+  const id = jwtDecodeToken(token);
+  if (!id)
+    return res.status(403).send({message: "Invalid token!"});
+  const i = await getSigner(id, req, res);
+  if (i === -1)
+    return;
+  let code = "";
+  for(let n = 0; n < 6; n ++) {
+    const rnd = Math.floor(Math.random()*10);
+    code = code + rnd.toString();
+  }
+  console.log("Generated verification code : ", code);
+  signers[i].code = code;
+  const mail = new Email();
+  await mail.send({to: contact, subject: "Verification code", body: `Your verification code: ${signer[i].code}`})
+  return res.send({message: "Verification code has been sent. Please make sure it in your inbox."});
+}
+
+exports.verify = async(req, res) => {
+  const {token, code} = req.body;
+  const id = jwtDecodeToken(token);
+  if (!id)
+    return res.status(403).send({message: "Invalid token!"});
+  const i = await getSigner(id, req, res);
+  if (code !== signers[i].code)
+    return res.status(421).send({message: "Invalid verification code!"});
+  signers[i].verified = true;
+  return res.send({message: "Success"});
 }
 
 exports.sign = async(req, res) => {

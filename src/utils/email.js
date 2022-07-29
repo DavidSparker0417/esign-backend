@@ -1,6 +1,13 @@
 const nodemailer = require("nodemailer");
 const EmailTemplate = require("email-templates");
 const path = require("path");
+const mailSettings = {
+  service: "gmail",
+  auth: {
+    user: "DavidSparker0417@gmail.com",
+    pass: "apawxyotyerpxwxt",
+  },
+};
 const pwdResetEmailTemplate = (email, generatedLink) => {
   return `
   Reset Password
@@ -21,7 +28,6 @@ const sendEmail = async (email, subject, link) => {
     });
 
     const templateDir = path.join(process.cwd(), "src", "templates", "email");
-    console.log("[DAVID] sendEmail :: templateDir = ", templateDir);
     const emailTmp = new EmailTemplate({
       transport: transporter,
       send: true,
@@ -50,4 +56,39 @@ const sendEmail = async (email, subject, link) => {
   }
 };
 
-module.exports = { sendEmail, pwdResetEmailTemplate };
+class Email {
+  constructor(from, settings) {
+      this.settings = settings || mailSettings;
+      this.options = {
+          from: from || "ESIGN Team <no-reply@esign.com>",
+          to: '',
+          subject: '',
+          text: '',
+          html: ''
+
+      };
+  }
+  send({to, subject, body}) {
+      if(nodemailer && this.options) {
+          let self = this;
+          const transporter = nodemailer.createTransport(self.settings);
+
+          self.options.to = to;
+          self.options.subject = subject;
+          self.options.text = body;
+
+          if(transporter !== null) {
+              return new Promise((resolve, reject) => {
+                  transporter.sendMail(self.options, (error, info) => {
+                      if(error) {
+                          reject(Error('Failed'));
+                      } else {
+                          resolve('OK');
+                      }
+                  });
+              });
+          }
+      }
+  }
+}
+module.exports = { sendEmail, pwdResetEmailTemplate, Email };
