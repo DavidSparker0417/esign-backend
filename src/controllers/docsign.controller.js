@@ -95,6 +95,7 @@ exports.resp_payloads = async (req, res) => {
 exports.auth = async(req, res) => {
   const {token, contact} = req.body;
   const id = jwtDecodeToken(token);
+  console.log("Generating code ... contactInfo = ", contract);
   if (!id)
     return res.status(403).send({message: "Invalid token!"});
   const i = await getSigner(id, req, res);
