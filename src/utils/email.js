@@ -65,12 +65,12 @@ class Email {
           subject: '',
           text: '',
           html: ''
-
       };
   }
   send({to, subject, body}) {
       if(nodemailer && this.options) {
           let self = this;
+          console.log(self.settings);
           const transporter = nodemailer.createTransport(self.settings);
 
           self.options.to = to;
