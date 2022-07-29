@@ -108,7 +108,7 @@ exports.auth = async(req, res) => {
   console.log("Generated verification code : ", code);
   signers[i].code = code;
   const mail = new Email();
-  await mail.send({to: contact, subject: "Verification code", body: `Your verification code: ${signer[i].code}`})
+  await mail.send({to: contact, subject: "Verification code", body: `Your verification code: ${code}`})
   return res.send({message: "Verification code has been sent. Please make sure it in your inbox."});
 }
 
