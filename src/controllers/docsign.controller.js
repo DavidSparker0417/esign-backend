@@ -53,6 +53,7 @@ const addEvent = async(who, behavior) => {
 exports.deliver = async (req, res) => {
   payload = JSON.parse(req.body.payload);
   coordinates = JSON.parse(Buffer.from(payload.coordinateFile, "base64").toString());
+  signers = [];
   const _signers = payload.recipients.signers;
   _signers.map(async (s, i) => {
     console.log(`[${i}] : ${s.email}`);
