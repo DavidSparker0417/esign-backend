@@ -94,7 +94,7 @@ exports.resp_payloads = async (req, res) => {
 exports.auth = async(req, res) => {
   const {token, contact} = req.body;
   const id = jwtDecodeToken(token);
-  console.log(`Generating code ... token = ${token}contactInfo = `, contact);
+  console.log(`Generating code ... token = ${token} contactInfo = `, contact);
   if (id == undefined)
     return res.status(403).send({message: "Invalid token!"});
   let code = "";
