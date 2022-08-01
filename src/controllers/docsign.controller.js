@@ -55,7 +55,7 @@ exports.deliver = async (req, res) => {
   coordinates = JSON.parse(Buffer.from(payload.coordinateFile, "base64").toString());
   const _signers = payload.recipients.signers;
   _signers.map(async (s, i) => {
-    console.log(`[${s.recipientId}] : ${s.email}`);
+    console.log(`[${i}] : ${s.email}`);
     const token = jwtGenerateToken(i);
     const link = `${dapp_url}/app/doc-sign/?token=${token}`;
     console.log(s.email, link);
