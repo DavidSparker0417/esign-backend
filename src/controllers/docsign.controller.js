@@ -60,24 +60,19 @@ exports.deliver = async (req, res) => {
     const token = jwtGenerateToken(i);
     const link = `${dapp_url}/app/doc-sign/?token=${token}`;
     console.log(s.email, link);
-    // await sendEmail(s.email, "Esign Document", link);
+    await sendEmail(s.email, "Esign Document", link);
     signers[i] = {
         email: s.email,
         id: i,
         verified: false,
       };
-    // signers.push({
-    //   email: s.email,
-    //   id: i,
-    //   verified: false,
-    // });
   });
   console.log(signers);
   agent = payload?.agentInfo?.AgentEmail;
   auditTrail.name = payload.documents[0].name;
   auditTrail.auditLog = [];
   pdfBuffer = Buffer.from(payload.documents[0].documentBase64, "base64");
-  // addEvent("ESIGN Team", "document delivered");
+  addEvent("ESIGN Team", "document delivered");
   res.send({message: "OK"});
 }
 
