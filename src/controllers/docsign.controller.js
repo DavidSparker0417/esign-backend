@@ -66,6 +66,7 @@ exports.deliver = async (req, res) => {
       verified: false,
     });
   });
+  console.log(signers);
   agent = payload?.agentInfo?.AgentEmail;
   auditTrail.name = payload.documents[0].name;
   auditTrail.auditLog = [];
@@ -80,7 +81,7 @@ exports.resp_payloads = async (req, res) => {
   if (id == undefined)
     return res.status(403).send({message: "Invalid token!"});
   const signer = signers[id];
-  console.log(signer);
+  console.log("id = ", id, signer);
   if (signer.verified === true) {
     addEvent(signer.email, "viewed contract");
     return res.send({payload, coordinates, id: signer.id});
