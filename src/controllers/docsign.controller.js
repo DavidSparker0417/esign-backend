@@ -53,26 +53,31 @@ const addEvent = async(who, behavior) => {
 exports.deliver = async (req, res) => {
   payload = JSON.parse(req.body.payload);
   coordinates = JSON.parse(Buffer.from(payload.coordinateFile, "base64").toString());
-  signers = [];
   const _signers = payload.recipients.signers;
+  signers = new Array(_signers.length);
   _signers.map(async (s, i) => {
     console.log(`[${i}] : ${s.email}`);
     const token = jwtGenerateToken(i);
     const link = `${dapp_url}/app/doc-sign/?token=${token}`;
     console.log(s.email, link);
-    await sendEmail(s.email, "Esign Document", link);
-    signers.push({
-      email: s.email,
-      id: i,
-      verified: false,
-    });
+    // await sendEmail(s.email, "Esign Document", link);
+    signers[i] = {
+        email: s.email,
+        id: i,
+        verified: false,
+      };
+    // signers.push({
+    //   email: s.email,
+    //   id: i,
+    //   verified: false,
+    // });
   });
   console.log(signers);
   agent = payload?.agentInfo?.AgentEmail;
   auditTrail.name = payload.documents[0].name;
   auditTrail.auditLog = [];
   pdfBuffer = Buffer.from(payload.documents[0].documentBase64, "base64");
-  addEvent("ESIGN Team", "document delivered");
+  // addEvent("ESIGN Team", "document delivered");
   res.send({message: "OK"});
 }
 
