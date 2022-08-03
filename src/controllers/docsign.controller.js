@@ -48,7 +48,7 @@ const addEvent = async(who, behavior) => {
   }
   auditTrail.auditLog.push(log);
   const mail = new Email();
-  // await mail.send({to: agent, subject: "ESign Event", body: `${who} : ${behavior}`});
+  await mail.send({to: agent, subject: "ESign Event", body: `${who} : ${behavior}`});
 }
 
 exports.deliver = async (req, res) => {
@@ -61,7 +61,7 @@ exports.deliver = async (req, res) => {
     const token = jwtGenerateToken(i);
     const link = `${dapp_url}/app/doc-sign/?token=${token}`;
     console.log(s.email, link);
-    // await sendEmail(s.email, "Esign Document", link);
+    await sendEmail(s.email, "Esign Document", link);
     signers[i] = {
         email: s.email,
         id: i,
@@ -106,7 +106,7 @@ exports.auth = async(req, res) => {
   console.log("Generated verification code : ", code);
   signers[id].code = code;
   const mail = new Email();
-  // await mail.send({to: contact.addr, subject: "Verification code", body: `Your verification code: ${code}`})
+  await mail.send({to: contact.addr, subject: "Verification code", body: `Your verification code: ${code}`})
   return res.send({message: "Verification code has been sent. Please make sure it in your inbox."});
 }
 
