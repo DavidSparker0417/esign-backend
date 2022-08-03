@@ -40,14 +40,15 @@ exports.create = async (req, res) => {
 };
 
 const addEvent = async(who, behavior) => {
+  const moment = require("moment");
   const log = {
-    when: (new Date()).toISOString().split('T')[0],
+    when: moment().format("MM/DD/YYYY HH:mm:ss"),
     who: who,
     behavior: behavior,
   }
   auditTrail.auditLog.push(log);
   const mail = new Email();
-  await mail.send({to: agent, subject: "ESign Event", body: `${who} : ${behavior}`});
+  // await mail.send({to: agent, subject: "ESign Event", body: `${who} : ${behavior}`});
 }
 
 exports.deliver = async (req, res) => {
@@ -60,14 +61,14 @@ exports.deliver = async (req, res) => {
     const token = jwtGenerateToken(i);
     const link = `${dapp_url}/app/doc-sign/?token=${token}`;
     console.log(s.email, link);
-    await sendEmail(s.email, "Esign Document", link);
+    // await sendEmail(s.email, "Esign Document", link);
     signers[i] = {
         email: s.email,
         id: i,
         verified: false,
       };
   });
-  console.log(signers);
+  // console.log(signers);
   agent = payload?.agentInfo?.AgentEmail;
   auditTrail.name = payload.documents[0].name;
   auditTrail.auditLog = [];
@@ -78,6 +79,7 @@ exports.deliver = async (req, res) => {
 
 exports.resp_payloads = async (req, res) => {
   const {token} = req.body;
+  console.log("++++++++++++++++++++", req.headers);
   const id = jwtDecodeToken(token);
   if (id == undefined)
     return res.status(403).send({message: "Invalid token!"});
@@ -105,7 +107,7 @@ exports.auth = async(req, res) => {
   console.log("Generated verification code : ", code);
   signers[id].code = code;
   const mail = new Email();
-  await mail.send({to: contact.addr, subject: "Verification code", body: `Your verification code: ${code}`})
+  // await mail.send({to: contact.addr, subject: "Verification code", body: `Your verification code: ${code}`})
   return res.send({message: "Verification code has been sent. Please make sure it in your inbox."});
 }
 

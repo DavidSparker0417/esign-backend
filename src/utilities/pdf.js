@@ -1,5 +1,7 @@
 const fs = require("fs");
 const { sign } = require("pdf-signer");
+const { getSignature } = require("pdf-signer/dist/signature/digital-signature.service");
+const {replaceByteRangeInPdf} = require("pdf-signer/dist/pdf/node-signpdf/sign");
 const signer = require("node-signpdf").default;
 const { plainAddPlaceholder } = require("node-signpdf/dist/helpers");
 const { PDFDocument, rgb, degrees, StandardFonts } = require("pdf-lib");
@@ -7,52 +9,43 @@ const PDFKitDoc = require("pdfkit");
 const keyPath = "cert/pdf-signer.p12";
 const password = "";
 
-async function signPdfByPdfSigner(pdfBuffer, email, drawData) {
+async function pdfSign(inbuff) {
   const p12Buffer = fs.readFileSync("cert/pdf-signer.p12");
-  let pdfDoc = await PDFDocument.load(pdfBuffer);
+  let pdfDoc;
   let curPage;
-  
-  const date = new Date();
-  const signedPdf = await sign(pdfBuffer, p12Buffer, "", {
-    reason: "2",
-    email: email,
-    location: "Location, LO",
-    signerName: "ESIGN Team",
-    annotationAppearanceOptions: {
-      signatureCoordinates: { 
-        left: 0, 
-        bottom: 10, 
-        right: 100, 
-        top: 60 
-      },
-      signatureDetails: [
-        {
-          value: `Signed by: ${email}`,
-          fontSize: 7,
-          transformOptions: {
-            rotate: 0,
-            space: 1,
-            tilt: 0,
-            xPos: 0,
-            yPos: 20,
-          },
-        },
-        {
-          value: date.toISOString().split('T')[0],
-          fontSize: 7,
-          transformOptions: {
-            rotate: 0,
-            space: 1,
-            tilt: 0,
-            xPos: 0,
-            yPos: 10,
-          },
-        },
-      ],
-    },
+
+  const pdfWithPlaceholder = plainAddPlaceholder({
+    pdfBuffer: inbuff,
+    reason: "ESIGN signature",
   });
 
+  const signer = require("node-signpdf").default;
+  const signedPdf = signer.sign(pdfWithPlaceholder, p12Buffer, {
+    passphrase: "",
+    });
+  const signatureStr = getSignature(pdfWithPlaceholder, p12Buffer, 8192, "");
+
+  const crypto = require('crypto');
+  var hash = crypto.createHash('md5').update(signatureStr).digest('hex');
   pdfDoc = await PDFDocument.load(signedPdf);
+  const firstPage = pdfDoc.getPages()[0];
+  firstPage.drawText(hash, {
+    size: 10,
+    x: 10,
+    y: firstPage.getHeight() - 20,
+    width: 300,
+    height: 50,
+  });
+  resultPdf = await pdfDoc.save();
+  return resultPdf;
+}
+
+async function signPdfByPdfSigner(pdfBuffer, email, drawData) {
+  const p12Buffer = fs.readFileSync("cert/pdf-signer.p12");
+  let pdfDoc;
+  let curPage;
+
+  pdfDoc = await PDFDocument.load(pdfBuffer);
   const pages = pdfDoc.getPages();
   for (i in pages) {
     curPage = pages[i];
@@ -89,9 +82,70 @@ async function signPdfByPdfSigner(pdfBuffer, email, drawData) {
     }
   }
 
-  const resultPdf = await pdfDoc.save();
+  let drawnPdf = await pdfDoc.save({ useObjectStreams: false });
+  const resultPdf = await pdfSign(Buffer.from(drawnPdf))
+  // const pdfWithPlaceholder = plainAddPlaceholder({
+  //   pdfBuffer: Buffer.from(resultPdf),
+  //   reason: "ESIGN signature",
+  // });
+  // const signer = require("node-signpdf").default;
+  // const signedPdf = signer.sign(pdfWithPlaceholder, p12Buffer, {
+  //   passphrase: "",
+  //   });
+  // const signatureStr = getSignature(pdfWithPlaceholder, p12Buffer, 8192, "");
+
+  // const crypto = require('crypto');
+  // var hash = crypto.createHash('md5').update(signatureStr).digest('hex');
+  // pdfDoc = await PDFDocument.load(signedPdf);
+  // const firstPage = pdfDoc.getPages()[0];
+  // firstPage.drawText(hash, {
+  //   size: 10,
+  //   x: 10,
+  //   y: firstPage.getHeight() - 20,
+  //   width: 300,
+  //   height: 50,
+  // });
+  // resultPdf = await pdfDoc.save();
+  // const signedPdf = await sign(Buffer.from(pdfWithPlaceholder), p12Buffer, "", {
+  //   reason: "2",
+  //   email: email,
+  //   location: "Location, LO",
+  //   signerName: "ESIGN Team",
+  //   annotationAppearanceOptions: {
+  //     signatureCoordinates: { 
+  //       left: 0, 
+  //       bottom: 10, 
+  //       right: 100, 
+  //       top: 60 
+  //     },
+  //     signatureDetails: [
+  //       {
+  //         value: `Signed by: ${email}`,
+  //         fontSize: 7,
+  //         transformOptions: {
+  //           rotate: 0,
+  //           space: 1,
+  //           tilt: 0,
+  //           xPos: 0,
+  //           yPos: 20,
+  //         },
+  //       },
+  //       {
+  //         value: (new Date()).toISOString().split('T')[0],
+  //         fontSize: 7,
+  //         transformOptions: {
+  //           rotate: 0,
+  //           space: 1,
+  //           tilt: 0,
+  //           xPos: 0,
+  //           yPos: 10,
+  //         },
+  //       },
+  //     ],
+  //   },
+  // });
+
   const resB64Buffer = Buffer.from(resultPdf).toString("base64");
-  console.log("[DOC-SIGN] SIGNED B64 BUFFER = ", resB64Buffer.slice(0, 20));
   return resB64Buffer;
 }
 
@@ -201,4 +255,5 @@ async function signPdfByTron(pdfB64) {
 module.exports = {
   signPdfByPdfSigner,
   signPdfByTron,
+  pdfSign,
 };
