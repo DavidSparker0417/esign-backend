@@ -79,7 +79,6 @@ exports.deliver = async (req, res) => {
 
 exports.resp_payloads = async (req, res) => {
   const {token} = req.body;
-  console.log("++++++++++++++++++++", req.headers);
   const id = jwtDecodeToken(token);
   if (id == undefined)
     return res.status(403).send({message: "Invalid token!"});
@@ -118,8 +117,11 @@ exports.verify = async(req, res) => {
     return res.status(403).send({message: "Invalid token!"});
   if (code !== signers[id].code)
     return res.status(421).send({message: "Invalid verification code!"});
+  const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  console.log(`++++++++++++++++++++++ ${ip} +++++++++++++`); // ip address of the user
   signers[id].verified = true;
-  addEvent(signers[id].email, "successfully authenticated");
+  signers[id].ipAddr = ip;
+  addEvent(signers[id].email, `successfully verified(${ip})`);
   return res.send({message: "Success"});
 }
 
