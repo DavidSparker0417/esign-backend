@@ -1,12 +1,12 @@
 const db = require("../models");
-const {signPdfByPdfSigner, signPdfByTron} = require("../utilities/pdf");
+const {signPdfByPdfSigner, signPdfByTron, pdfEmbedId} = require("../utilities/pdf");
 const { sendEmail, Email } = require("../utils/email");
 const { jwtGenerateToken, jwtDecodeToken } = require("../utils/jwt");
 const User = db.user;
 let payload;
 let coordinates;
 let auditTrail = {};
-let pdfBuffer;
+let gPdfBuffer;
 let agent;
 // const dapp_url = "http://192.168.103.18:3000";
 const dapp_url = "https://esign-dapp.netlify.app";
@@ -48,7 +48,7 @@ const addEvent = async(who, behavior) => {
   }
   auditTrail.auditLog.push(log);
   const mail = new Email();
-  await mail.send({to: agent, subject: "ESign Event", body: `${who} : ${behavior}`});
+  // await mail.send({to: agent, subject: "ESign Event", body: `${who} : ${behavior}`});
 }
 
 exports.deliver = async (req, res) => {
@@ -61,8 +61,9 @@ exports.deliver = async (req, res) => {
     const token = jwtGenerateToken(i);
     const link = `${dapp_url}/app/doc-sign/?token=${token}`;
     console.log(s.email, link);
-    await sendEmail(s.email, "Esign Document", link);
+    // await sendEmail(s.email, "Esign Document", link);
     signers[i] = {
+        name: s.name,
         email: s.email,
         id: i,
         verified: false,
@@ -70,9 +71,16 @@ exports.deliver = async (req, res) => {
   });
   // console.log(signers);
   agent = payload?.agentInfo?.AgentEmail;
-  auditTrail.name = payload.documents[0].name;
+  const pdfBuffer = Buffer.from(payload.documents[0].documentBase64, "base64");
+  const {resultPdf, hash} = await pdfEmbedId(pdfBuffer);
+  gPdfBuffer = resultPdf;
+  auditTrail.CertificateOfCompletion = {
+    folderID: hash,
+    subject: payload?.emailSubject,
+    docName : payload.documents[0].name,
+    docPages: coordinates.pdfLength
+  }
   auditTrail.auditLog = [];
-  pdfBuffer = Buffer.from(payload.documents[0].documentBase64, "base64");
   addEvent("ESIGN Team", "document delivered");
   res.send({message: "OK"});
 }
@@ -106,7 +114,7 @@ exports.auth = async(req, res) => {
   console.log("Generated verification code : ", code);
   signers[id].code = code;
   const mail = new Email();
-  await mail.send({to: contact.addr, subject: "Verification code", body: `Your verification code: ${code}`})
+  // await mail.send({to: contact.addr, subject: "Verification code", body: `Your verification code: ${code}`})
   return res.send({message: "Verification code has been sent. Please make sure it in your inbox."});
 }
 
@@ -126,11 +134,76 @@ exports.verify = async(req, res) => {
 }
 
 exports.sign = async(req, res) => {
-  const {who, behavior, drInfo} = req.body;
-  console.log("++++++++++++ :: ", who, behavior);
-  const drawData = JSON.parse(drInfo);
-  const signedPdf = await signPdfByPdfSigner(pdfBuffer, who, drawData);
+  const {drInfo, token} = req.body;
   
-  addEvent(who, "signed");
-  res.send({auditTrail, signedPdf});
+  const id = jwtDecodeToken(token);
+  if (id == undefined)
+    return res.status(403).send({message: "Invalid token!"});
+
+  const drawData = JSON.parse(drInfo);
+  gPdfBuffer = await signPdfByPdfSigner(gPdfBuffer, signers[id].email, drawData);
+  const resPdf = Buffer.from(gPdfBuffer).toString("base64");
+  console.log(`[${signers[id].email}] is signing ...`);
+  addEvent(signers[id].email, "signed");
+  signers[id].signed = true;
+  let i;
+  for(i in signers) {
+    s = signers[i];
+    if (!s.signed)
+      break;
+  }
+  if (i == signers.length-1) {
+    console.log("++++++++++++++ All signers finished to sign! +++++++++");
+    const host = req.get("host");
+    const link = "https://" + host + "/api/doc-sign/download";
+    console.log(link);
+    for(i in signers) {
+      const s = signers[i];
+      const mail = new Email();
+      await mail.send({to: s.email, subject: "All are signed!", body: `Please download result from ${link}`});
+    }
+  }
+  res.send({auditTrail, signedPdf: resPdf});
+}
+
+exports.download = async(req, res) => {
+  // var stream = require('stream');
+  // var fileContents = Buffer.from(gPdfBuffer, "base64");
+  // var readStream = new stream.PassThrough();
+  // readStream.end(fileContents);
+  // res.set('Content-disposition', 'attachment; filename=' + "signed.pdf");
+  // res.set('Content-Type', 'text/plain');
+  // readStream.pipe(res);
+
+  var Archiver = require('archiver');
+
+  // Tell the browser that this is a zip file.
+  res.writeHead(200, {
+      'Content-Type': 'application/zip',
+      'Content-disposition': 'attachment; filename=sign-result.zip'
+  });
+
+  var zip = Archiver('zip');
+
+  // Send the file to the page output.
+  zip.pipe(res);
+
+  const json2html = require("json2html");
+  const auditTrailHtml = json2html.render(auditTrail);
+  
+  var { JSDOM } = require("jsdom");
+  var { window } = new JSDOM("");
+  const htmlToPdfmake = require("html-to-pdfmake");
+  const html = htmlToPdfmake(auditTrailHtml, {window:window, tableAutoSize:true});
+  const pdfMake = require("pdfmake/build/pdfmake");
+  var pdfFonts = require("pdfmake/build/vfs_fonts");
+  pdfMake.vfs = pdfFonts.pdfMake.vfs;
+  pdfMake.createPdf({content:html}).getBuffer(
+    function(buffer) {
+      zip.append(Buffer.from(gPdfBuffer), { name: 'signed.pdf' })
+      .append(Buffer.from(buffer), { name: 'audit-trail.pdf' })
+      .append(JSON.stringify(auditTrail), { name: 'audit-trail.json' })
+      .finalize();
+    }
+  );
 }
