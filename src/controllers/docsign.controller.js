@@ -66,7 +66,7 @@ exports.deliver = async (req, res) => {
         name: s.name,
         email: s.email,
         id: i,
-        verified: false,
+        verified: false
       };
   });
   // console.log(signers);
@@ -159,11 +159,14 @@ exports.sign = async(req, res) => {
   if (isAllsigned() === true) {
     console.log("++++++++++++++ All signers finished to sign! +++++++++");
     const host = req.get("host");
-    const link = "https://" + host + "/api/doc-sign/download";
-    console.log(link);
     for(let i in signers) {
       const s = signers[i];
       const mail = new Email();
+      const token = jwtGenerateToken(i);
+      const link = "https://" 
+        + host 
+        + `/api/doc-sign/download?token=${token}`;
+      console.log(link);
       await mail.send({to: s.email, subject: "All are signed!", body: `Please download result from ${link}`});
     }
   }
@@ -171,16 +174,15 @@ exports.sign = async(req, res) => {
 }
 
 exports.download = async(req, res) => {
-  // var stream = require('stream');
-  // var fileContents = Buffer.from(gPdfBuffer, "base64");
-  // var readStream = new stream.PassThrough();
-  // readStream.end(fileContents);
-  // res.set('Content-disposition', 'attachment; filename=' + "signed.pdf");
-  // res.set('Content-Type', 'text/plain');
-  // readStream.pipe(res);
+  const reqToken = req.query.token;
+  const id = jwtDecodeToken(token);
+  if (id === undefined)
+    return res.status(403).send({message: "Invalid request token!"});
+  if (!signers[id])
+    return res.status(403).send({message: "Invalid id!"});
 
+  console.log(`${signers[id].name} downloading result ...`);
   var Archiver = require('archiver');
-
   // Tell the browser that this is a zip file.
   res.writeHead(200, {
       'Content-Type': 'application/zip',
