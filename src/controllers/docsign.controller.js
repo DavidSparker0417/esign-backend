@@ -175,7 +175,7 @@ exports.sign = async(req, res) => {
 
 exports.download = async(req, res) => {
   const reqToken = req.query.token;
-  const id = jwtDecodeToken(token);
+  const id = jwtDecodeToken(reqToken);
   if (id === undefined)
     return res.status(403).send({message: "Invalid request token!"});
   if (!signers[id])
