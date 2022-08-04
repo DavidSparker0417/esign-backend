@@ -133,6 +133,16 @@ exports.verify = async(req, res) => {
   return res.send({message: "Success"});
 }
 
+function isAllsigned() {
+  let i;
+  for(i in signers) {
+    s = signers[i];
+    if (!s.signed)
+      break;
+  }
+  return i == signers.length;
+}
+
 exports.sign = async(req, res) => {
   const {drInfo, token} = req.body;
   
@@ -152,7 +162,7 @@ exports.sign = async(req, res) => {
     if (!s.signed)
       break;
   }
-  if (i == signers.length-1) {
+  if (i == signers.length) {
     console.log("++++++++++++++ All signers finished to sign! +++++++++");
     const host = req.get("host");
     const link = "https://" + host + "/api/doc-sign/download";
