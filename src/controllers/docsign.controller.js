@@ -138,9 +138,9 @@ function isAllsigned() {
   for(i in signers) {
     s = signers[i];
     if (!s.signed)
-      break;
+      return false;
   }
-  return i == signers.length;
+  return true;
 }
 
 exports.sign = async(req, res) => {
@@ -156,18 +156,12 @@ exports.sign = async(req, res) => {
   console.log(`[${signers[id].email}] is signing ...`);
   addEvent(signers[id].email, "signed");
   signers[id].signed = true;
-  let i;
-  for(i in signers) {
-    s = signers[i];
-    if (!s.signed)
-      break;
-  }
-  if (i == signers.length) {
+  if (isAllsigned() === true) {
     console.log("++++++++++++++ All signers finished to sign! +++++++++");
     const host = req.get("host");
     const link = "https://" + host + "/api/doc-sign/download";
     console.log(link);
-    for(i in signers) {
+    for(let i in signers) {
       const s = signers[i];
       const mail = new Email();
       await mail.send({to: s.email, subject: "All are signed!", body: `Please download result from ${link}`});
