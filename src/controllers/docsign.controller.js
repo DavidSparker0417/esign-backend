@@ -276,7 +276,7 @@ exports.download = async(req, res) => {
 
   console.log(`${signers[id].name} downloading result ...`);
   const signerKey = `signer${id+1}Log`;
-  auditTrail[signerKey].rows.push("Sent", "", moment().format("MM/DD/YYYY HH:mm:ss"));
+  auditTrail[signerKey].rows.push(["Sent", "", moment().format("MM/DD/YYYY HH:mm:ss")]);
   var Archiver = require('archiver');
   // Tell the browser that this is a zip file.
   res.writeHead(200, {
