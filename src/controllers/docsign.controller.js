@@ -269,14 +269,14 @@ exports.sign = async(req, res) => {
 exports.download = async(req, res) => {
   const reqToken = req.query.token;
   const id = jwtDecodeToken(reqToken);
-  // if (id === undefined)
-  //   return res.status(403).send({message: "Invalid request token!"});
-  // if (!signers[id])
-  //   return res.status(403).send({message: "Invalid id!"});
+  if (id === undefined)
+    return res.status(403).send({message: "Invalid request token!"});
+  if (!signers[id])
+    return res.status(403).send({message: "Invalid id!"});
 
-  // console.log(`${signers[id].name} downloading result ...`);
-  // const signerKey = `signer${id+1}Log`;
-  // auditTrail[signerKey].rows.push("Sent", "", moment().format("MM/DD/YYYY HH:mm:ss"));
+  console.log(`${signers[id].name} downloading result ...`);
+  const signerKey = `signer${id+1}Log`;
+  auditTrail[signerKey].rows.push("Sent", "", moment().format("MM/DD/YYYY HH:mm:ss"));
   var Archiver = require('archiver');
   // Tell the browser that this is a zip file.
   res.writeHead(200, {
