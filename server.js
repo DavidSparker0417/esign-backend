@@ -21,20 +21,20 @@ app.use(express.static(__dirname + "/public"));
 const db = require("./src/models");
 const Role = db.role;
 
-db.sequelize
-  .authenticate()
-  .then(() => {
-    console.log("Data connection success! Sequelize is ready to use...");
-  })
-  .catch((err) => {
-    console.log("Database connection failure.");
-    console.error(err);
-  });
+// db.sequelize
+//   .authenticate()
+//   .then(() => {
+//     console.log("Data connection success! Sequelize is ready to use...");
+//   })
+//   .catch((err) => {
+//     console.log("Database connection failure.");
+//     console.error(err);
+//   });
 
-db.sequelize.sync({ force: false }).then(() => {
-  console.log("Drop and Resync Database with { force: false }");
-  // initial();
-});
+// db.sequelize.sync({ force: false }).then(() => {
+//   console.log("Drop and Resync Database with { force: false }");
+//   // initial();
+// });
 
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to ESIGN backend server." });
@@ -51,6 +51,11 @@ const PORT = process.env.PORT || HTTP_PORT;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
 });
+
+// const docController = require("./src/controllers/docsign.controller");
+// docController.testPdfTable()
+//   .then(() => console.log(":::: test pdf ::: copleted!"))
+//   .catch(e => console.log("*********** Testing pdf failed ***********"));
 
 // const httpsPort = HTTPS_PORT;
 // const privateKey = fs.readFileSync("config/cert/private.key");

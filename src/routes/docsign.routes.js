@@ -17,5 +17,6 @@ module.exports = function(app) {
   app.post("/api/doc-sign/sign", controller.sign);
   app.post("/api/doc-sign/auth", controller.auth);
   app.post("/api/doc-sign/verify", controller.verify);
+  app.post("/api/doc-sign/adopt", controller.adopt);
   app.get("/api/doc-sign/download", controller.download);
 }
