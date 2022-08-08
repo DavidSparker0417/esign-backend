@@ -252,7 +252,7 @@ exports.sign = async(req, res) => {
   if (isAllsigned() === true) {
     console.log("++++++++++++++ All signers finished to sign! +++++++++");
     const host = req.get("host");
-    for(let i in signers) {
+    for(let i = 0; i < signers.length; i ++) {
       const s = signers[i];
       const mail = new Email();
       const token = jwtGenerateToken(i);
