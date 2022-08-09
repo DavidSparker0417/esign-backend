@@ -16,7 +16,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // specify static path for public share
 app.use(express.static(__dirname + "/public"));
 // device detect
-app.use(device.capture());
+app.use(device.capture({parseUserAgent: true}));
 // database
 const db = require("./src/models");
 const Role = db.role;
@@ -51,11 +51,6 @@ const PORT = process.env.PORT || HTTP_PORT;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
 });
-
-// const docController = require("./src/controllers/docsign.controller");
-// docController.testPdfTable()
-//   .then(() => console.log(":::: test pdf ::: completed!"))
-//   .catch(e => console.log("*********** Testing pdf failed ***********"));
 
 // const httpsPort = HTTPS_PORT;
 // const privateKey = fs.readFileSync("config/cert/private.key");

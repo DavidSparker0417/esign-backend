@@ -123,8 +123,8 @@ async function onDeliver(payload) {
   auditTrail.folderOriginator.rows.push(["{OriginatorAddressline1}", ""]);
   auditTrail.folderOriginator.rows.push(["{OriginatorAddressline2}", ""]);
   auditTrail.folderOriginator.rows.push(["52.124.34.134", ""]);
-  auditTrail.folderOriginator.rows.push(["{OriginatorName}", ""]);
-  auditTrail.folderOriginator.rows.push(["{OriginatorEmail}", ""]);
+  auditTrail.folderOriginator.rows.push([payload?.agentInfo?.AgentName, ""]);
+  auditTrail.folderOriginator.rows.push([payload?.agentInfo?.AgentEmail, ""]);
 
   auditTrail.recordTracking.rows.push(["Status", "Original", currentTime()]);
   auditTrail.recordTracking.rows.push(["Document Holder", "", ""]);
@@ -233,7 +233,7 @@ async function onAdopt(hash, id, ersdId) {
   console.log(`${signer.name} accepted ERSD.`);
   const signerKey = `signer${id+1}Log`;
   const curTime = currentTime();
-  folders[hash].auditTrail[signerKey].rows.push(["ERSD", "Accepted", curTime]);
+  folders[hash].auditTrail[signerKey].rows.push(["Electronic Records and Signature Disclosure", "Accepted", curTime]);
   folders[hash].auditTrail[signerKey].rows.push(["ERSD ID", ersdId, curTime]);
   return true;
 }
@@ -248,7 +248,7 @@ function isAllsigned(folder) {
   return true;
 }
 
-async function onSign(hash, id, drawData, host, deviceType) {
+async function onSign(hash, id, drawData, host, device) {
   const fs = getFolderAndSigner(hash, id);
   if (fs === null)
     return "Invalid token!";
@@ -289,9 +289,19 @@ async function onSign(hash, id, drawData, host, deviceType) {
     ""
   ]);
   
+  let devType;
+  if (!device)
+    devType = "unknown";
+  else if (device?.type === "desktop")
+    devType = "desktop";
+  else {
+    devType = device.name;
+    if (devType == "")
+      devType = device.type;
+  }
   folders[hash].auditTrail[signerKey].rows.push([
     "Signed using mobile",
-    `${deviceType}`,
+    `${devType}`,
     "",
   ]);
   folders[hash].auditTrail[signerKey].rows.push(["Signed", "", curTime]);
