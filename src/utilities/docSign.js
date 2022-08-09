@@ -120,8 +120,8 @@ async function onDeliver(payload) {
   auditTrail.certificateOfCompletion.rows.push(["AutoNav", "Enabled"]);
 
   auditTrail.folderOriginator.rows.push(["staus", "Complete"]);
-  auditTrail.folderOriginator.rows.push(["{OriginatorAddressline1}", ""]);
-  auditTrail.folderOriginator.rows.push(["{OriginatorAddressline2}", ""]);
+  auditTrail.folderOriginator.rows.push([payload?.agentInfo?.OriginatorAddressline1, ""]);
+  auditTrail.folderOriginator.rows.push([payload?.agentInfo?.OriginatorAddressline2, ""]);
   auditTrail.folderOriginator.rows.push(["52.124.34.134", ""]);
   auditTrail.folderOriginator.rows.push([payload?.agentInfo?.AgentName, ""]);
   auditTrail.folderOriginator.rows.push([payload?.agentInfo?.AgentEmail, ""]);
