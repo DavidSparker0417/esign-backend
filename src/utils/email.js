@@ -1,7 +1,7 @@
 const nodemailer = require("nodemailer");
 const EmailTemplate = require("email-templates");
 const path = require("path");
-const ignoreSend = false;
+const ignoreSend = true;
 const mailSettings = {
   service: "gmail",
   auth: {

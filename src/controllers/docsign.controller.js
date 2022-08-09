@@ -172,7 +172,11 @@ exports.deliver = async (req, res) => {
   if (!payload)
     res.status(403).send({message: "Thre is no payload in your request!"});
   // onSingleFolderDeliver(payload);
-  await onDeliver(payload);
+  try {
+    await onDeliver(payload);
+  } catch(e) {
+    return res.status(403).send({message: "Error occured on delivering!"});
+  }
   res.send({message: "OK"});
 }
 
