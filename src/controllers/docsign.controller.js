@@ -171,12 +171,14 @@ exports.deliver = async (req, res) => {
   try {
     payload = JSON.parse(req?.body?.payload);
   } catch(e) {
+    console.log("Wrong payload format!", req.body);
     return res.status(403).send({message: "Wrong payloayd json format!"});
   }
   // onSingleFolderDeliver(payload);
   try {
     await onDeliver(payload);
   } catch(e) {
+    console.log("Error on deliver!", req.body);
     return res.status(403).send({message: "Error occured on delivering!"});
   }
   res.send({message: "OK"});
