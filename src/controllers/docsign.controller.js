@@ -168,9 +168,11 @@ async function onSingleFolderDeliver(pld) {
 }
 
 exports.deliver = async (req, res) => {
-  payload = JSON.parse(req.body?.payload);
-  if (!payload)
-    res.status(403).send({message: "Thre is no payload in your request!"});
+  try {
+    payload = JSON.parse(req?.body?.payload);
+  } catch(e) {
+    res.status(403).send({message: "Wrong payloayd json format!"});
+  }
   // onSingleFolderDeliver(payload);
   try {
     await onDeliver(payload);
