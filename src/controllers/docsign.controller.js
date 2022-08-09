@@ -168,17 +168,29 @@ async function onSingleFolderDeliver(pld) {
 }
 
 exports.deliver = async (req, res) => {
-  try {
-    payload = JSON.parse(req?.body?.payload);
-  } catch(e) {
-    console.log("Wrong payload format!", req.body);
-    return res.status(403).send({message: "Wrong payloayd json format!"});
+  const reqPayload = req?.body?.payload;
+  if (!reqPayload)
+  {
+    console.log(req.body);
+    return res.status(403).send({message: "No payload exist in the request!"});
+  }
+  if (typeof reqPayload === "string")
+  {
+    try {
+      payload = JSON.parse(reqPayload);    
+    } catch(e) {
+      console.log("Wrong payload format!", req.body);
+      return res.status(403).send({message: "Wrong payloayd json format!"});
+    }
+  } else {
+    payload = reqPayload;
   }
   // onSingleFolderDeliver(payload);
+  console.log("+++++++++++++ delivering...");
   try {
     await onDeliver(payload);
   } catch(e) {
-    console.log("Error on deliver!", req.body);
+    console.log("Error on deliver!", payload);
     return res.status(403).send({message: "Error occured on delivering!"});
   }
   res.send({message: "OK"});
