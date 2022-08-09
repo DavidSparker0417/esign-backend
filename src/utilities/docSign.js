@@ -207,7 +207,7 @@ async function onVerify(hash, id, ip, code) {
   const fs = getFolderAndSigner(hash, id);
   if (fs === null)
     return "Invalid token!";
-  const {signer} = fs;
+  const {folder, signer} = fs;
   
   if (code !== signer.code)
     return "Invalid verification code!";
