@@ -168,7 +168,9 @@ async function onSingleFolderDeliver(pld) {
 }
 
 exports.deliver = async (req, res) => {
-  payload = JSON.parse(req.body.payload);
+  payload = JSON.parse(req.body?.payload);
+  if (!payload)
+    res.status(403).send({message: "Thre is no payload in your request!"});
   // onSingleFolderDeliver(payload);
   await onDeliver(payload);
   res.send({message: "OK"});
@@ -176,7 +178,6 @@ exports.deliver = async (req, res) => {
 
 exports.resp_payloads = async (req, res) => {
   const {token} = req.body;
-  console.log("+++++++++ PayloadRequest :: ", req?.device);
   const dtk = jwtDecodeToken(token);
   if (dtk == undefined)
     return res.status(403).send({message: "Invalid token!"});

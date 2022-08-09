@@ -88,18 +88,18 @@ async function onDeliver(payload) {
 
   let initialCount = 0;
   let sigCount = 0;
-  let certPages = 0;
   let exsitsCerts = new Array(coordinates.pdfLength).fill(false);
   coordinates?.allSigners?.map((cs, i) => {
     cs.pages.map((p, pageNumber) => {
       if (p?.initialCoordinates) initialCount += p.initialCoordinates.length;
       if (p?.signatureCoordinates) {
-        certPages++;
         sigCount += p.signatureCoordinates.length;
-        exsitsCerts[pageNumber] = true;
+        exsitsCerts[pageNumber] = p.signatureCoordinates.length > 0;
       }
     });
   });
+
+  const certPages = exsitsCerts.reduce((count, exist) => exist == true ? count + 1 : count, 0);
   auditTrail.certificateOfCompletion.rows.push(["folderId", hash]);
   auditTrail.certificateOfCompletion.rows.push([
     "subject",
