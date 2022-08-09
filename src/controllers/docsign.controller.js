@@ -173,7 +173,7 @@ exports.deliver = async (req, res) => {
   {
     console.log(req, "No payload exist in the request!");
     // return res.status(403).send({message: "No payload exist in the request!"});
-    reqPayload = req;
+    reqPayload = req.body;
   }
   if (typeof reqPayload === "string")
   {
