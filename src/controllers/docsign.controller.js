@@ -168,11 +168,12 @@ async function onSingleFolderDeliver(pld) {
 }
 
 exports.deliver = async (req, res) => {
-  const reqPayload = req?.body?.payload;
+  let reqPayload = req?.body?.payload;
   if (!reqPayload)
   {
     console.log(req, "No payload exist in the request!");
-    // return res.status(403).send({message: "No payload exist in the request!"});
+    if (!req.body)
+      return res.status(403).send({message: "No payload exist in the request!"});
     reqPayload = req.body;
   }
   if (typeof reqPayload === "string")
