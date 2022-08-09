@@ -2,6 +2,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
+const device = require("express-device");
 const https = require("https");
 const app = express();
 const fs = require("fs");
@@ -10,13 +11,12 @@ const {HTTP_PORT, HTTPS_PORT} = require("./src/config/server.config");
 // parse request of content-type - application/json
 app.use(bodyParser.json({ limit: "5mb" }));
 app.use(cookieParser());
-
 // parse requests of content-type - application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: true }));
-
 // specify static path for public share
 app.use(express.static(__dirname + "/public"));
-
+// device detect
+app.use(device.capture());
 // database
 const db = require("./src/models");
 const Role = db.role;
@@ -54,7 +54,7 @@ app.listen(PORT, () => {
 
 // const docController = require("./src/controllers/docsign.controller");
 // docController.testPdfTable()
-//   .then(() => console.log(":::: test pdf ::: copleted!"))
+//   .then(() => console.log(":::: test pdf ::: completed!"))
 //   .catch(e => console.log("*********** Testing pdf failed ***********"));
 
 // const httpsPort = HTTPS_PORT;

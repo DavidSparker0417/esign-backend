@@ -47,7 +47,7 @@ async function pdfSign(inbuff) {
   return signedPdf;
 }
 
-async function signPdfByPdfSigner(pdfBuffer, email, drawData) {
+async function signPdfByPdfSigner(pdfBuffer, drawData) {
   let pdfDoc;
   let curPage;
 

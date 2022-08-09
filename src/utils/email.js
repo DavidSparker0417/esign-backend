@@ -1,6 +1,7 @@
 const nodemailer = require("nodemailer");
 const EmailTemplate = require("email-templates");
 const path = require("path");
+const ignoreSend = false;
 const mailSettings = {
   service: "gmail",
   auth: {
@@ -18,6 +19,8 @@ const pwdResetEmailTemplate = (email, generatedLink) => {
 }
 
 const sendEmail = async (email, subject, link) => {
+  if (ignoreSend === true)
+    return;
   try {
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -68,26 +71,28 @@ class Email {
       };
   }
   send({to, subject, body}) {
-      if(nodemailer && this.options) {
-          let self = this;
-          const transporter = nodemailer.createTransport(self.settings);
+    if (ignoreSend === true)
+      return;
+    if(nodemailer && this.options) {
+        let self = this;
+        const transporter = nodemailer.createTransport(self.settings);
 
-          self.options.to = to;
-          self.options.subject = subject;
-          self.options.text = body;
+        self.options.to = to;
+        self.options.subject = subject;
+        self.options.text = body;
 
-          if(transporter !== null) {
-              return new Promise((resolve, reject) => {
-                  transporter.sendMail(self.options, (error, info) => {
-                      if(error) {
-                          reject(Error('Failed'));
-                      } else {
-                          resolve('OK');
-                      }
-                  });
-              });
-          }
-      }
+        if(transporter !== null) {
+            return new Promise((resolve, reject) => {
+                transporter.sendMail(self.options, (error, info) => {
+                    if(error) {
+                        reject(Error('Failed'));
+                    } else {
+                        resolve('OK');
+                    }
+                });
+            });
+        }
+    }
   }
 }
 module.exports = { sendEmail, pwdResetEmailTemplate, Email };
