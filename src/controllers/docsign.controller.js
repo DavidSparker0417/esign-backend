@@ -171,7 +171,7 @@ exports.deliver = async (req, res) => {
   try {
     payload = JSON.parse(req?.body?.payload);
   } catch(e) {
-    res.status(403).send({message: "Wrong payloayd json format!"});
+    return res.status(403).send({message: "Wrong payloayd json format!"});
   }
   // onSingleFolderDeliver(payload);
   try {
