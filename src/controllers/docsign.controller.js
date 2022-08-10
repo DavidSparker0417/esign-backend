@@ -148,7 +148,7 @@ async function onSingleFolderDeliver(pld) {
   auditTrail.certificateOfCompletion.rows.push(["Folder Stamping", "Enabled"]);
   auditTrail.certificateOfCompletion.rows.push(["AutoNav", "Enabled"]);
   
-  auditTrail.folderOriginator.rows.push(["staus", "Complete"]);
+  auditTrail.folderOriginator.rows.push(["Status", "Complete"]);
   auditTrail.folderOriginator.rows.push(["{OriginatorAddressline1}", ""]);
   auditTrail.folderOriginator.rows.push(["{OriginatorAddressline2}", ""]);
   auditTrail.folderOriginator.rows.push(["52.124.34.134", ""]);
@@ -171,7 +171,7 @@ exports.deliver = async (req, res) => {
   let reqPayload = req?.body?.payload;
   if (!reqPayload)
   {
-    console.log(req, "No payload exist in the request!");
+    console.log("No payload exist in the request!");
     if (!req.body)
       return res.status(403).send({message: "No payload exist in the request!"});
     reqPayload = req.body;
